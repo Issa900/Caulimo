@@ -19,6 +19,19 @@ class node(object):
 		self.species=[]
 		self.de = float(0)
 		self.deFromRoot = float(0)
+		self.childs=[]
+
+	def __repr__(self):
+		# return ("node({}), type of node({}), path to root({}), number of sequence({}), evolutionary distance({})".format(str(self.node), self.feuille, ";".join(self.path), str(self.lght), str(self.distEvol))
+		# return "toto"
+		lght= str(len(self.species))
+		distEvol = str(self.deFromRoot)
+		if self.feuille :
+			feuille = "Leaf***"
+		else:
+			feuille = "internal node"
+		path = ";".join(self.path)
+		return ("%s\n" %(",".join([self.name,feuille,path,lght,distEvol])))
 
 class parsePPlacerOut(object):
 	def __init__(self, refTree ="", inCSV = ""):
@@ -27,7 +40,7 @@ class parsePPlacerOut(object):
 		self.nodes={}
 		self.count = 0
 
-	def _checkOptions(self):
+	def checkOptions(self):
 		if not os.path.exists(self.refTree) :
 			raise Exception ("ERROR: file not found %s" %(self.refTree))
 		if not os.path.exists(self.inCSV) :
@@ -64,7 +77,7 @@ class parsePPlacerOut(object):
 				else:
 					graphfile.write("\""+ name + "\" [shape = \"none\", label=\"" + name +": " + self.nodes[name].name +" "+ str(self.nodes[name].de) + "\", color=\"darkslategrey\"]; \n")
 			for name in self.nodes :
-				print ("node", name, ":" , self.nodes[name].species, " path is ", self.nodes[name].path)
+				# print ("node", name, ":" , self.nodes[name].species, " path is ", self.nodes[name].path)
 				if self.nodes[name].parent > -1 :
 					graphfile.write("%s -> %s ;\n"%(self.nodes[name].parent,name))
 			graphfile.write('}')
@@ -83,10 +96,13 @@ class parsePPlacerOut(object):
 			i.feuille = not(token == ')')
 			if parent >-1 :
 				i.path = self.nodes[parent].path + [parent]
+				self.nodes[parent].childs=self.nodes[parent].childs + [nb]
 			else :
 				i.path =[]
 
 			self.nodes[nb]=i
+
+
 
 	def read_tree (self, na, sub):
 
@@ -163,7 +179,7 @@ class parsePPlacerOut(object):
 				f.write ("%s\n" %(",".join([node,feuille,path,lght,distEvol])))
 
 	def run (self):
-		self._checkOptions()
+		self.checkOptions()
 		line = open (self.refTree, 'r').readlines()[1]
 		line = line.rstrip().strip(';",')
 		self.read_tree ( -1, line)
